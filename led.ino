@@ -1,46 +1,22 @@
-#include <DHT.h>
+#define BLYNK_TEMPLATE_ID "YourTemplateID"
+#define BLYNK_TEMPLATE_NAME "YourTemplateName"
+#define BLYNK_AUTH_TOKEN "YourAuthToken"
 #include <ESP8266WiFi.h>
-#include <ThingSpeak.h>
-#define DHTPIN D4
-#define DHTTYPE DHT11
-const char* ssid = "George";
-const char* password = "12345678";
-const char* apiKey = "Q8GZ1A5T7XYZABCD";
-unsigned long channelID = 2425981;
-WiFiClient client;
-DHT dht(DHTPIN, DHTTYPE);
+#include <BlynkSimpleEsp8266.h>
+char ssid[] = "YOUR_WIFI_NAME";
+char pass[] = "YOUR_WIFI_PASSWORD";
+#define RELAY_PIN D1
+BLYNK_WRITE(V0) { // Virtual Pin 0 from Blynk app button
+int value = param.asInt();
+digitalWrite(RELAY_PIN, value);
+Serial.println(value ? "Relay ON" : "Relay OFF");
+}
 void setup() {
 Serial.begin(115200);
-WiFi.begin(ssid, password);
-ThingSpeak.begin(client);
-dht.begin();
-Serial.print("Connecting");
-while (WiFi.status() != WL_CONNECTED) {
-delay(500);
-Serial.print(".");
-}
-Serial.println("Connected!");
+pinMode(RELAY_PIN, OUTPUT);
+digitalWrite(RELAY_PIN, LOW);
+Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
 }
 void loop() {
-float h = dht.readHumidity();
-float t = dht.readTemperature();
-if (isnan(h) || isnan(t)) {
-Serial.println("Failed to read from sensor!");
-return;
-}
-Serial.print("Temp: ");
-Serial.print(t);
-Serial.print("°C, Humidity: ");
-Serial.print(h);
-Serial.println("%");
-ThingSpeak.setField(1, t);
-ThingSpeak.setField(2, h);
-int result = ThingSpeak.writeFields(channelID, apiKey);
-if (result == 200) {
-Serial.println("Data sent to ThingSpeak.");
-} else {
-Serial.print("Error sending data. Code: ");
-Serial.println(result);
-}
-delay(10000);
+Blynk.run();
 }
